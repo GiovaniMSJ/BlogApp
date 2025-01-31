@@ -2,8 +2,9 @@
     const express = require('express')
     const handlebars = require('express-handlebars')
     const bodyParser = require('body-parser')
-    // const mongoose = require('mongoose')
     const app = express()
+    const router = require('./routes/admin')
+    // const mongoose = require('mongoose')
 //Configurações
     //body Parser
     app.use(bodyParser.urlencoded({extended: true}))
@@ -21,10 +22,10 @@
     // Mongoose
         // Em Breve
 // Rotas
-
+    app.use('/admin', router)
 //Outros
 
 const PORT = 8081
-app.listen(PORT, () => {
-    console.log('O servidor está rodando na porta http://localhost/8081')
+app.listen(PORT, function() {
+    console.log(`O servidor está rodando na porta http://localhost:${PORT}`)
 })
