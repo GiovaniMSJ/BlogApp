@@ -4,7 +4,8 @@
     const bodyParser = require('body-parser')
     const app = express()
     const router = require('./routes/admin')
-    // const mongoose = require('mongoose')
+    const path = require('path')
+    const mongoose = require('mongoose')
 //Configurações
     //body Parser
     app.use(bodyParser.urlencoded({extended: true}))
@@ -20,7 +21,14 @@
     }));
     app.set('view engine', 'handlebars');
     // Mongoose
-        // Em Breve
+        mongoose.Promise = global.Promise
+        mongoose.connect('mongodb://127.0.0.1:27017/blogapp').then(() => {
+            console.log('Conectado ao mongo')
+        }).catch((e) => { 
+            console.log('Deu erro ao se conectar ao mongo ' + e)
+        })
+    // Public / Arquivos estáticos
+    app.use(express.static(path.join(__dirname, 'public')))
 // Rotas
     app.use('/admin', router)
 //Outros
