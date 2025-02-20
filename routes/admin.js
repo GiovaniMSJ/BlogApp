@@ -5,6 +5,8 @@ const router = express.Router()
 const mongoose = require('mongoose')
 require('../models/Categoria')
 const Categoria = mongoose.model('categorias')
+require('../models/Postagem')
+const Postagem = mongoose.model('postagens')
 
 //Rota principal
 router.get('/', (req, res) => {
@@ -137,6 +139,66 @@ router.post('/categorias/deletar',(req, res) => {
         res.redirect('/admin/categorias')
     })
 })
+
+// Rota que vai listar as postagens
+router.get('/postagens', (req, res) => {
+    res.render('admin/postagens')
+})
+
+router.get('/postagens/add', (req, res) => {
+    Categoria.find().then((categorias) => {
+        res.render('admin/addpostagem', {categorias : categorias})
+    }).catch(() => {
+        req.flash('error_msg', 'Houve um erro ao carregar o formulario')
+        res.redirect('/admin')
+    }) 
+})
+
+router.post('/postagens/nova', (req, res) => {
+
+    let erros = []
+
+    if(!req.body.titulo || typeof req.body.titulo == 'undefined' || req.body.titulo == null) {
+        erros.push({texto: 'Titulo inválido'})
+    }
+
+    if(!req.body.slug || typeof req.body.slug == 'undefined' || req.body.slug == null) {
+        erros.push({texto: 'Slug inválido'})
+    }
+
+    if(!req.body.descricao || typeof req.body.descricao == 'undefined' || req.body.descricao == null) {
+        erros.push({texto: 'Descrição é inválida'})
+    }
+
+    if(!req.body.conteudo || typeof req.body.conteudo == 'undefined' || req.body.conteudo == null) {
+        erros.push({texto: 'Conteudo é inválido'})
+    }
+
+    if(req.body.categoria == '0') {
+        erros.push({texto: 'Categoria inválida, registre uma categoria'})
+    }
+
+    if(erros.length > 0) {
+        res.render('admin/addpostagem', { erros: erros })
+    }else {
+        const novaPostagem = {
+            tiulo : req.body.titulo,
+            slug : req.body.slug,
+            descricao : req.body.descricao,
+            conteudo: req.body.conteudo,
+            categoria: req.body.categoria
+        }
+
+        new Postagem(novaPostagem).save().then(() => {
+            req.flash('success_msg', 'Postagem criada com sucesso!')
+            res.redirect('/admin/postagens')
+        }).catch((e) => {
+            req.flash('error_msg', 'Houve um erro durante o salvamento da postagem')
+            res.redirect('/admin/postagens')
+        }) 
+    }
+
+} )
 
 // Exportando as rotas
 module.exports = router
