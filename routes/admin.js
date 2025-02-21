@@ -142,7 +142,13 @@ router.post('/categorias/deletar',(req, res) => {
 
 // Rota que vai listar as postagens
 router.get('/postagens', (req, res) => {
-    res.render('admin/postagens')
+    Postagem.find().lean().populate('categoria').sort({data: 'desc'}).then((postagens) => {
+        res.render('admin/postagens', {postagens : postagens})
+    }).catch((e) => {
+        req.flash('error_msg', 'Houve um erro ao listar as postagens')
+        res.redirect('/admin')
+    }) 
+
 })
 
 router.get('/postagens/add', (req, res) => {
@@ -182,7 +188,7 @@ router.post('/postagens/nova', (req, res) => {
         res.render('admin/addpostagem', { erros: erros })
     }else {
         const novaPostagem = {
-            tiulo : req.body.titulo,
+            titulo : req.body.titulo,
             slug : req.body.slug,
             descricao : req.body.descricao,
             conteudo: req.body.conteudo,
