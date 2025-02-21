@@ -4,10 +4,15 @@
     const bodyParser = require('body-parser')
     const app = express()
     const router = require('./routes/admin')
+    const usuario = require('./routes/usuario')
     const path = require('path')
     const mongoose = require('mongoose')
     const session = require('express-session')
     const flash = require('connect-flash')
+    require('./models/Postagem')
+    const Postagens = mongoose.model('postagens')
+    require('./models/Categoria')
+    const Categoria = mongoose.model('categorias')
 //Configurações
     // Sessão
         app.use(session({
@@ -45,6 +50,72 @@
     // Public / Arquivos estáticos
     app.use(express.static(path.join(__dirname, 'public')))
 // Rotas
+    //Rota principal
+    app.get('/', (req, res) => {
+        Postagens.find().lean().populate('categoria').sort({data: 'desc'}).then((postagens) => {
+            res.render('index', {postagens : postagens})
+        }) .catch((e) => {
+            req.flash('error_msg', 'Houve um erro ao carregar as postagens')
+            res.redirect('/404')
+        })
+
+    })
+
+    //Rota para mostrar mais sobre a postagem
+    app.get('/postagem/:slug', (req , res) => {
+        Postagens.findOne({slug: req.params.slug}).then((postagem) => {
+            if(postagem) {
+                res.render('postagem/index', {postagem : postagem})
+            }else {
+                req.flash('error_msg', 'Essa postagem não existe')
+                res.redirect('/')
+            }
+        }).catch((e) => {
+            req.flash('error_msg', 'Houve um erro interno')
+            res.redirect('/')
+        })
+    })
+
+    //Rota de listagem de categorias
+    app.get('/categorias', (req, res) => {
+        Categoria.find().then((categorias) => {
+            res.render('categorias/index', {categorias : categorias})
+        }).catch((e) => {
+            req.flash('error_msg', 'Houve um erro interno ao listar as categorias')
+            res.redirect('/')
+        })
+    })
+
+    //Rota das postagem que tem uma categoria especifica
+    app.get('/categorias/:slug', (req, res) => {
+        Categoria.findOne({slug: req.params.slug}).then((categoria) => {
+            if(categoria) {
+                Postagens.find({categoria : categoria._id}).then((postagem) => {
+                    res.render('categorias/postagem', {postagem : postagem, categoria: categoria})
+                }).catch((e) => {
+                    req.flash('error_msg', 'Houve um erro ao listar os posts')
+                    res.redirect('/')
+                })
+
+            } else {
+                req.flash('error_msg', 'Está categoria não existe')
+                res.redirect('/')
+            }
+        }).catch((e) => {
+            req.flash('error_msg', 'Houve um erro ao carregar a pagina dessa categoria')
+            res.redirect('/')
+        })
+    })
+
+    //Rota de erro 404
+    app.get('/404', (req, res) => {
+        res.send('Erro  404!')
+    })
+
+    //Rota do Usuario
+    app.use('/usuarios', usuario)
+
+    //Rota das categorias e postagens
     app.use('/admin', router)
 //Outros
 
