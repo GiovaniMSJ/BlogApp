@@ -11,6 +11,10 @@
             <small>Data: {{data}}</small>
             <br>
             <small>Categoria: {{categoria.nome}}</small>
+            <br>
+            <a href="/admin/postagem/edit/{{_id}}"><button class="btn btn-success">Editar postagem</button></a>
+            <br>
+            <a href="/admin/postagem/delete/{{_id}}"><button class="btn btn-danger mt-2">Deletar postagem</button></a>
         </div>
     </div>
 {{else}}    
